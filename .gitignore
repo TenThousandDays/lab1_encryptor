@@ -1,6 +1,9 @@
 build/
+build_asan/
+build_test/
 cmake-build-*/
 dist/
+test_*/
 *.o
 *.obj
 *.exe
