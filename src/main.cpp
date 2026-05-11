@@ -2,9 +2,10 @@
 
 #include <cstdlib>
 #include <exception>
-#include <filesystem>
 #include <iostream>
 #include <string>
+
+#include <openssl/crypto.h>
 
 namespace {
 
@@ -31,6 +32,14 @@ bool parseMode(const std::string& value, DirectoryProcessor::Mode& mode)
     return false;
 }
 
+void secureClear(std::string& value)
+{
+    if (!value.empty()) {
+        OPENSSL_cleanse(&value[0], value.size());
+        value.clear();
+    }
+}
+
 } // namespace
 
 int main(int argc, char* argv[])
@@ -48,10 +57,11 @@ int main(int argc, char* argv[])
         }
 
         const std::filesystem::path directoryPath = argv[2];
-        const std::string password = argv[3];
+        std::string password = argv[3];
 
         DirectoryProcessor processor(std::cout);
         const ProcessingResult result = processor.process(directoryPath, password, mode);
+        secureClear(password);
 
         std::cout << "\nSummary:\n"
                   << "  encrypted files: " << result.encryptedFiles << '\n'
