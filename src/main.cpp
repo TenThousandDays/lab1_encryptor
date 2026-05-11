@@ -1,14 +1,12 @@
+#include "DirectoryProcessor.h"
+
 #include <cstdlib>
+#include <exception>
+#include <filesystem>
 #include <iostream>
 #include <string>
 
 namespace {
-
-enum class Mode
-{
-    Encrypt,
-    Decrypt
-};
 
 void printUsage(const char* executableName)
 {
@@ -20,14 +18,14 @@ void printUsage(const char* executableName)
               << "  " << executableName << " decrypt ./data \"StrongPassword123!\"\n";
 }
 
-bool parseMode(const std::string& value, Mode& mode)
+bool parseMode(const std::string& value, DirectoryProcessor::Mode& mode)
 {
     if (value == "encrypt") {
-        mode = Mode::Encrypt;
+        mode = DirectoryProcessor::Mode::Encrypt;
         return true;
     }
     if (value == "decrypt") {
-        mode = Mode::Decrypt;
+        mode = DirectoryProcessor::Mode::Decrypt;
         return true;
     }
     return false;
@@ -37,17 +35,39 @@ bool parseMode(const std::string& value, Mode& mode)
 
 int main(int argc, char* argv[])
 {
-    if (argc != 4) {
-        printUsage(argv[0]);
+    try {
+        if (argc != 4) {
+            printUsage(argv[0]);
+            return EXIT_FAILURE;
+        }
+
+        DirectoryProcessor::Mode mode = DirectoryProcessor::Mode::Encrypt;
+        if (!parseMode(argv[1], mode)) {
+            printUsage(argv[0]);
+            return EXIT_FAILURE;
+        }
+
+        const std::filesystem::path directoryPath = argv[2];
+        const std::string password = argv[3];
+
+        DirectoryProcessor processor(std::cout);
+        const ProcessingResult result = processor.process(directoryPath, password, mode);
+
+        std::cout << "\nSummary:\n"
+                  << "  encrypted files: " << result.encryptedFiles << '\n'
+                  << "  decrypted files: " << result.decryptedFiles << '\n'
+                  << "  skipped files:   " << result.skippedFiles << '\n'
+                  << "  failed files:    " << result.failedFiles << '\n'
+                  << "  symlinks used:   " << result.processedSymlinks << '\n';
+
+        return result.failedFiles == 0U ? EXIT_SUCCESS : EXIT_FAILURE;
+    }
+    catch (const std::exception& exception) {
+        std::cerr << "Fatal error: " << exception.what() << '\n';
         return EXIT_FAILURE;
     }
-
-    Mode mode = Mode::Encrypt;
-    if (!parseMode(argv[1], mode)) {
-        printUsage(argv[0]);
+    catch (...) {
+        std::cerr << "Fatal error: unknown non-standard exception\n";
         return EXIT_FAILURE;
     }
-
-    std::cout << "FolderProtector args ok\n";
-    return EXIT_SUCCESS;
 }
