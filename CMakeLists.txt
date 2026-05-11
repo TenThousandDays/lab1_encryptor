@@ -8,6 +8,11 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 add_executable(folder_protector
     src/main.cpp
+    src/FileCryptor.cpp
+)
+
+target_include_directories(folder_protector PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
 target_compile_options(folder_protector PRIVATE
