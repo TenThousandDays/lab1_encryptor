@@ -1,0 +1,15 @@
+build/
+cmake-build-*/
+dist/
+*.o
+*.obj
+*.exe
+*.out
+*.gcda
+*.gcno
+*.gcov
+*.profraw
+*.profdata
+.DS_Store
+.vscode/
+.idea/
