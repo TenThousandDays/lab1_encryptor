@@ -1,6 +1,7 @@
 build/
 cmake-build-*/
 dist/
+test_dir/
 *.o
 *.obj
 *.exe
