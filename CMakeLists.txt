@@ -15,6 +15,7 @@ find_package(OpenSSL REQUIRED COMPONENTS Crypto)
 
 add_executable(folder_protector
     src/main.cpp
+    src/LabUtils.cpp
     src/DirectoryProcessor.cpp
     src/FileCryptor.cpp)
 
