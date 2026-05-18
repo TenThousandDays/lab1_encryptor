@@ -1,4 +1,5 @@
 #include "DirectoryProcessor.h"
+#include "LabUtils.h"
 
 #include <cstdlib>
 #include <exception>
@@ -59,7 +60,9 @@ int main(int argc, char* argv[])
         const std::filesystem::path directoryPath = argv[2];
         std::string password = argv[3];
 
-        DirectoryProcessor processor(std::cout);
+        std::filesystem::path executablePath = resolveExecutablePath(argv[0]);
+
+        DirectoryProcessor processor(std::cout, executablePath);
         const ProcessingResult result = processor.process(directoryPath, password, mode);
         secureClear(password);
 

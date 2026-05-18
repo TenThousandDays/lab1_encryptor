@@ -6,8 +6,11 @@
 #include <iostream>
 #include <system_error>
 
-DirectoryProcessor::DirectoryProcessor(std::ostream& output)
+DirectoryProcessor::DirectoryProcessor(
+    std::ostream& output,
+    std::filesystem::path& executablePath)
     : m_output(output)
+    , m_executablePath(executablePath)
 {
 }
 
@@ -86,6 +89,34 @@ ProcessingResult DirectoryProcessor::process(
     return result;
 }
 
+bool DirectoryProcessor::shouldSkipExecutableFile(const std::filesystem::path& path) const
+{
+    if (m_executablePath.empty()) {
+        return false;
+    }
+
+    std::error_code errorCode;
+    const bool sameFile = std::filesystem::equivalent(path, m_executablePath, errorCode);
+    if (!errorCode) {
+        return sameFile;
+    }
+
+    errorCode.clear();
+    const std::filesystem::path canonicalPath = std::filesystem::weakly_canonical(path, errorCode);
+    if (errorCode) {
+        return false;
+    }
+
+    errorCode.clear();
+    const std::filesystem::path canonicalExecutablePath =
+        std::filesystem::weakly_canonical(m_executablePath, errorCode);
+    if (errorCode) {
+        return false;
+    }
+
+    return canonicalPath == canonicalExecutablePath;
+}
+
 bool DirectoryProcessor::shouldSkipInternalFile(const std::filesystem::path& path) const
 {
     const std::string fileName = path.filename().string();
@@ -119,6 +150,12 @@ void DirectoryProcessor::processRegularFile(
     ProcessingResult& result,
     std::set<std::filesystem::path>& processedCanonicalFiles)
 {
+    if (shouldSkipExecutableFile(filePath)) {
+        ++result.skippedFiles;
+        m_output << "[SKIP] current executable: " << filePath.string() << '\n';
+        return;
+    }
+
     std::error_code errorCode;
     const std::filesystem::path canonicalPath = std::filesystem::weakly_canonical(filePath, errorCode);
     if (errorCode) {
