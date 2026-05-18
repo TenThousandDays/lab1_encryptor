@@ -17,7 +17,9 @@ public:
         Decrypt
     };
 
-    explicit DirectoryProcessor(std::ostream& output);
+    explicit DirectoryProcessor(
+        std::ostream& output,
+        std::filesystem::path& executablePath);
 
     ProcessingResult process(
         const std::filesystem::path& rootPath,
@@ -25,6 +27,7 @@ public:
         Mode mode);
 
 private:
+    bool shouldSkipExecutableFile(const std::filesystem::path& path) const;
     bool shouldSkipInternalFile(const std::filesystem::path& path) const;
     bool isInsideRoot(
         const std::filesystem::path& canonicalRoot,
@@ -46,6 +49,7 @@ private:
         std::set<std::filesystem::path>& processedCanonicalFiles);
 
     std::ostream& m_output;
+    std::filesystem::path& m_executablePath;
 };
 
 #endif // DIRECTORYPROCESSOR_H
